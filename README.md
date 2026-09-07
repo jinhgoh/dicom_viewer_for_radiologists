@@ -1,5 +1,5 @@
 # DicomView
-<img width="2291" height="1358" alt="image" src="https://github.com/user-attachments/assets/e8c92632-9534-440b-9974-ffebc48175c1" />
+<img width="1524" height="828" alt="image" src="https://github.com/user-attachments/assets/61f47954-169b-4c44-9476-1ddd7901761e" />
 
 A DICOM viewer and annotation workstation for radiological reading, in the
 style of INFINITT PACS Viewer and RadiAnt. It reads a folder of DICOM files,
