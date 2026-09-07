@@ -102,8 +102,8 @@ call after collection.
 `dicom_io.fix_text()` repairs the Korean-PACS mojibake case (CP949 bytes declared as
 `ISO_IR 6`) by round-tripping through latin-1 and retrying a fallback encoding chain.
 **Every DICOM string that reaches the UI must go through `fix_text` or `Instance.text()`** —
-raw `ds.get("PatientName")` will render as mojibake on the shipped study. CSV export uses
-UTF-8 BOM so Excel opens the result correctly.
+raw `ds.get("PatientName")` renders as mojibake on any such export, including the test study
+this repo is developed against. CSV export uses UTF-8 BOM so Excel opens the result correctly.
 
 ### Viewport pool and layout
 

@@ -29,7 +29,7 @@ pip install -r requirements.txt
 ```
 
 Compressed DICOM (JPEG, JPEG 2000, JPEG-LS, RLE) needs a decoder. Uncompressed
-studies — including the one shipped alongside this folder — work without it:
+studies work without it:
 
 ```
 pip install pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg
@@ -40,37 +40,11 @@ pip install python-gdcm
 Without a decoder, compressed images show an explanatory message in the
 viewport instead of failing silently.
 
----
-
-## The loaded study
-
-The folder above this one holds a 118-image veterinary MRI study
-(TOSHIBA Titan 1.5 T, exported from INFINITT), 10 series across three planes:
-
-| Series | Description | Images | Plane | Notes |
-|-------:|-------------|-------:|-------|-------|
-| 9001 | DOR T2 | 11 | dorsal | 2.2 mm |
-| 11001 | SG T2 | 9 | sagittal | 2.2 mm |
-| 12001 | SG STIR | 9 | sagittal | fluid-sensitive |
-| 14001 | AX T2 | 12 | transverse | gapped stack (18.5 mm centres) |
-| 15001 | SG T2 | 11 | sagittal | 2.2 mm |
-| 16001 | SG T1 | 11 | sagittal | 2.2 mm |
-| 17001 | AX T2 | 15 | transverse | 3.0 mm |
-| 18001 | AX T1 | 15 | transverse | 3.0 mm |
-| 19001 | CE AX T1 | 14 | transverse | post-contrast |
-| 20001 | CE SG T1 | 11 | sagittal | post-contrast |
-
-Two details about this export are handled automatically:
-
-- **Korean text.** The files declare `SpecificCharacterSet = ISO_IR 6` (ASCII)
-  but actually contain CP949 bytes, so the patient name would otherwise render
-  as mojibake. Text is re-decoded through CP949/EUC-KR/Shift-JIS on a fallback
-  chain.
-- **Veterinary orientation.** The study is recognised as veterinary from the
-  institution name, so edge markers read **Cr/Cd** (cranial/caudal) and
-  **D/V** (dorsal/ventral) rather than H/F and P/A. See the caveat under
-  *Orientation markers* below. Toggle it in **View → Veterinary orientation
-  labels**.
+Text is decoded defensively. Some PACS exports declare
+`SpecificCharacterSet = ISO_IR 6` (ASCII) while actually carrying CP949 or
+Shift-JIS bytes, which would otherwise render patient and institution names as
+mojibake; such text is re-decoded through a CP949/EUC-KR/Shift-JIS fallback
+chain.
 
 ---
 
@@ -169,10 +143,9 @@ The **cross-reference cursor** (`X`) goes further: click any anatomical point
 and every other viewport jumps to the slice containing that point and marks it.
 
 A series that never imaged that location is deliberately left alone and shows no
-cursor, with a note in the status bar — for example the gapped AX T2 stack
-covers only 45 mm, so pointing at the mid-lumbar spine on a sagittal image is
-outside it. Moving that viewport to an edge slice would imply the point is
-visible there when it is not.
+cursor, with a note in the status bar — a gapped stack covering a short span
+will not contain a point picked well outside it on a sagittal image. Moving that
+viewport to an edge slice would imply the point is visible there when it is not.
 
 **Tools → Synchronise** additionally offers linked scrolling (matched by patient
 position, not slice index, so stacks with different spacing stay aligned),
@@ -200,6 +173,11 @@ cold/hot), plus greyscale inversion.
 Edge letters are derived from `ImageOrientationPatient` and follow the
 viewport's rotation and flips.
 
+A study is recognised as veterinary from its institution name and species/breed
+tags, in which case edge markers read **Cr/Cd** (cranial/caudal) and **D/V**
+(dorsal/ventral) rather than H/F and P/A. Toggle it in **View → Veterinary
+orientation labels**.
+
 DICOM patient coordinates are LPS (+X left, +Y posterior, +Z head), and
 scanners write LPS for animals too. The veterinary labels map
 +Y → dorsal and +Z → cranial, **which assumes sternal (prone) recumbency** —
@@ -218,11 +196,11 @@ series is spatially calibrated.
 **Tools → Multiplanar reconstruction** (`Ctrl+M`) reconstructs orthogonal
 planes from the active series, with a linked crosshair across the three panes.
 
-It is offered only for series that are genuinely a uniform parallel stack;
-series 14001, whose slices sit 18.5 mm apart, is correctly refused. Note that
-reconstruction quality is bounded by slice spacing — 2.2 mm sagittal slices give
-coarse reconstructions, and the window states the voxel size so the limitation
-is visible rather than implied.
+It is offered only for series that are genuinely a uniform parallel stack; a
+gapped or unevenly spaced series is refused rather than reconstructed into
+something misleading. Note that reconstruction quality is bounded by slice
+spacing — millimetre-scale slices give coarse reconstructions, and the window
+states the voxel size so the limitation is visible rather than implied.
 
 ---
 
